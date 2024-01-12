@@ -1,0 +1,42 @@
+# pobiera całą stronę - rekordy nazwa + cena (w całości z napisami)
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+import csv
+
+# Ustawienie sterownika Chrome
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service)
+
+try:
+    # Otwarcie strony
+    driver.get("https://www.mediaexpert.pl/agd/pralki-i-suszarki/pralki")
+
+    # Odczekanie na załadowanie strony
+    time.sleep(5)
+
+    # Znalezienie produktów
+    products = driver.find_elements(By.CSS_SELECTOR, "div.offers-list div.offer-box h2.name")
+
+    # Znalezienie cen
+    prices = driver.find_elements(By.CSS_SELECTOR, "div.offers-list div.offer-box div.price-box div.prices-section")
+
+    # Przygotowanie danych do zapisu
+    data_to_write = []
+    for product, price in zip(products, prices):
+        product_name = product.text
+        product_price = price.text
+        data_to_write.append([product_name, product_price])
+
+    # Zapis do pliku CSV
+    with open('products_and_prices.csv', 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Nazwa produktu', 'Cena'])
+        writer.writerows(data_to_write)
+
+finally:
+    # Zamknięcie przeglądarki
+    driver.quit()
